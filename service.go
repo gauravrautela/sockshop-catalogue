@@ -33,7 +33,8 @@ type Sock struct {
 	ImageURL    []string `json:"imageUrl" db:"-"`
 	ImageURL_1  string   `json:"-" db:"image_url_1"`
 	ImageURL_2  string   `json:"-" db:"image_url_2"`
-	Price       float32  `json:"price" db:"price"`
+	Price       float32  `json:"unitPrice" db:"price"`
+	Currency    string   `json:"currency" db:"-"`
 	Count       int      `json:"count" db:"count"`
 	Tags        []string `json:"tag" db:"-"`
 	TagString   string   `json:"-" db:"tag_name"`
@@ -51,6 +52,9 @@ var ErrNotFound = errors.New("not found")
 
 // ErrDBConnection is returned when connection with the database fails.
 var ErrDBConnection = errors.New("database connection error")
+
+// catalogueCurrency is the currency every catalogue price is quoted in.
+const catalogueCurrency = "USD"
 
 var baseQuery = "SELECT sock.sock_id AS id, sock.name, sock.description, sock.price, sock.count, sock.image_url_1, sock.image_url_2, GROUP_CONCAT(tag.name) AS tag_name FROM sock JOIN sock_tag ON sock.sock_id=sock_tag.sock_id JOIN tag ON sock_tag.tag_id=tag.tag_id"
 
@@ -101,6 +105,7 @@ func (s *catalogueService) List(tags []string, order string, pageNum, pageSize i
 	for i, s := range socks {
 		socks[i].ImageURL = []string{s.ImageURL_1, s.ImageURL_2}
 		socks[i].Tags = strings.Split(s.TagString, ",")
+		socks[i].Currency = catalogueCurrency
 	}
 
 	// DEMO: Change 0 to 850
@@ -159,6 +164,7 @@ func (s *catalogueService) Get(id string) (Sock, error) {
 
 	sock.ImageURL = []string{sock.ImageURL_1, sock.ImageURL_2}
 	sock.Tags = strings.Split(sock.TagString, ",")
+	sock.Currency = catalogueCurrency
 
 	return sock, nil
 }
